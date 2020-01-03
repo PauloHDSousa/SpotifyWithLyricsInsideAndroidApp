@@ -1,10 +1,15 @@
 package com.PauloHDSousa.SpotifyWithLyricsInside;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -12,6 +17,7 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,12 +38,14 @@ public class MainActivity extends AppCompatActivity {
     ImageView ivAlbum;
     TextView tvCurrentSong;
     Track lastTrack;
-    Button btnNext, btnStop, btnPrevious;
+    ImageButton ibNext, ibStop, ibPrevious, ibPlay, ibShuffle;
     FloatingActionButton fbSlowScroll,fbSpeedScroll;
     WebView webView;
     Handler mHandler = new Handler();
     boolean autoScrollOn = true;
     int scrollSpeed = 2;
+    int scrollUpdateInMS = 200;
+    boolean isShuffleOn;
 
     @Override
     protected void onStart() {
@@ -76,11 +84,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void connected() {
-
         // Subscribe to PlayerState
         mSpotifyAppRemote.getPlayerApi()
                 .subscribeToPlayerState()
                 .setEventCallback(playerState -> {
+
+                    //Handle the STOP / PLAY button
+                    if(playerState.isPaused){
+                        ibPlay.setVisibility(View.VISIBLE);
+                        ibStop.setVisibility(View.GONE);
+                    }
+                    else{
+                        ibStop.setVisibility(View.VISIBLE);
+                        ibPlay.setVisibility(View.GONE);
+                    }
+
+                    //Handle the Shuffle button
+                    isShuffleOn = playerState.playbackOptions.isShuffling;
+                    if(isShuffleOn){
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            ibShuffle.getBackground().setColorFilter(Color.argb(0, 50, 10, 5), PorterDuff.Mode.SRC_IN);
+                        } else {
+                            Drawable wrapDrawable = DrawableCompat.wrap(ibShuffle.getBackground());
+                            DrawableCompat.setTint(wrapDrawable, Color.argb(0, 50, 10, 5));
+                            ibShuffle.setBackgroundDrawable(DrawableCompat.unwrap(wrapDrawable));
+                        }
+                        //ibShuffle.setColorFilter(R.color.browser_actions_bg_grey);
+                    }
+                    else{
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            ibShuffle.getBackground().setColorFilter(Color.argb(0, 50, 10, 5), PorterDuff.Mode.SRC_IN);
+                        } else {
+                            Drawable wrapDrawable = DrawableCompat.wrap(ibShuffle.getBackground());
+                            DrawableCompat.setTint(wrapDrawable, Color.argb(0, 50, 10, 5));
+                            ibShuffle.setBackgroundDrawable(DrawableCompat.unwrap(wrapDrawable));
+                        }
+                        //ibShuffle.setColorFilter(R.color.browser_actions_bg_grey);
+                    }
+
                     final Track track = playerState.track;
                     if (track != null && lastTrack != track) {
                         lastTrack = track;
@@ -101,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        // Aaand we will finish off here.
+        SpotifyAppRemote.disconnect(mSpotifyAppRemote);
     }
 
     @Override
@@ -109,17 +152,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //SharedPrefs
         AppPreferences appPreferences = AppPreferences.getInstance(this);
         scrollSpeed = appPreferences.getInt(AppPreferences.ScrollSpeedKey);
 
         //Music HTML
         webView = (WebView)findViewById(R.id.wbLyrics);
-
+        webView.setVerticalScrollBarEnabled(false);
 
         //Music Controls
-        btnNext =  (Button)findViewById(R.id.btnNext);
-        btnStop = (Button)findViewById(R.id.btnStop);
-        btnPrevious = (Button)findViewById(R.id.btnPrevious);
+        ibNext =  (ImageButton)findViewById(R.id.ibNext);
+        ibStop = (ImageButton) findViewById(R.id.ibStop);
+        ibPrevious = (ImageButton)findViewById(R.id.ibPrevious);
+        ibPlay = (ImageButton)findViewById(R.id.ibPlay);
+        ibShuffle = (ImageButton)findViewById(R.id.ibShuffle);
 
         //Scroll Speed Controls
         fbSpeedScroll = (FloatingActionButton) findViewById(R.id.fbspeedScroll);
@@ -143,32 +189,61 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
         //Music Control Buttons Actions
-        btnNext.setOnClickListener(new View.OnClickListener() {
+        ibNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSpotifyAppRemote.getPlayerApi().skipNext();
             }
         });
 
-        btnStop.setOnClickListener(new View.OnClickListener() {
+        ibStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSpotifyAppRemote.getPlayerApi().pause();
+                ibStop.setVisibility(View.GONE);
+                ibPlay.setVisibility(View.VISIBLE);
             }
         });
 
-        btnPrevious.setOnClickListener(new View.OnClickListener() {
+        ibPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSpotifyAppRemote.getPlayerApi().resume();
+                ibPlay.setVisibility(View.GONE);
+                ibStop.setVisibility(View.VISIBLE);
+            }
+        });
+
+        ibPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSpotifyAppRemote.getPlayerApi().skipPrevious();
             }
         });
 
+        ibShuffle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSpotifyAppRemote.getPlayerApi().toggleShuffle();
 
+                isShuffleOn = !isShuffleOn;
+
+                if(isShuffleOn)
+                    onShuffleOn();
+                else
+                    onShuffleOff();
+            }
+        });
+    }
+    void onShuffleOn(){
+        ibShuffle.getBackground().setColorFilter(Color.rgb(0,0,0) , PorterDuff.Mode.SRC_IN);
+        //ibShuffle.setImageResource(R.drawable.ic_launcher_background);
+    }
+
+    void onShuffleOff(){
+        ibShuffle.getBackground().setColorFilter(Color.rgb(0,0,0) , PorterDuff.Mode.SRC_IN);
+        //ibShuffle.setImageResource(R.drawable.shuffle);
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -180,9 +255,10 @@ public class MainActivity extends AppCompatActivity {
 
         webView.setWebViewClient(new WebViewClient() {
 
-            //Enables Auto-Scroll after loading the Lyrics HTML
+            //Enables Auto-Scroll and Scroll to TOP after loading the Lyrics HTML
             public void onPageFinished(WebView view, String url) {
                 autoScrollOn = true;
+                webView.scrollBy(0, 0);
             }
         });
 
@@ -195,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
 
                 webView.scrollBy(0, scrollSpeed);
-                mHandler.postDelayed(this, 200);
+                mHandler.postDelayed(this, scrollUpdateInMS);
             }
         };
 

@@ -1,22 +1,24 @@
 package com.PauloHDSousa.Services;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.webkit.WebView;
 
 import com.PauloHDSousa.SpotifyWithLyricsInside.MainActivity;
-import com.PauloHDSousa.SpotifyWithLyricsInside.R;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 
 public class Services extends AsyncTask<String, Void, String> {
+
+    String SourceLETRASMUSICA = "https://www.letras.mus.br/";
+    String QueryLETRASMUSICA = ".p402_premium";
+
+    String SourceOUVIRMUSICA  = "https://www.ouvirmusica.com.br/";
+    String QueryOUVIRMUSICA   = ".cnt";
 
     private MainActivity mainActivity;
 
@@ -26,20 +28,51 @@ public class Services extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... params) {
-        String artist = ToCleanUrl(params[0]);
-        String music = ToCleanUrl(params[1]);
+        String artist = params[0];
+        String music = params[1];
 
-        String url = "https://www.letras.mus.br/" + artist + "/" + music;
+        String HTML = "";
+
+        Document document = getMusicHTML(artist, music , SourceLETRASMUSICA);
+        if(document != null){
+            HTML = document.body().select(QueryLETRASMUSICA).get(0).html();
+        }
+        else {
+            document = getMusicHTML(artist, music , SourceOUVIRMUSICA);
+            if(document != null){
+                HTML = document.body().select(QueryOUVIRMUSICA).get(0).html();
+            }
+        }
+
+        return  HTML;
+    }
+
+
+    Document getMusicHTML(String artist, String music, String source){
+
+        //Splits the Artists name (Thank' you OneRepublic)
+        String[] artistName = artist.split("(?=\\p{Upper})");
+
+        artist = Arrays.toString(artistName);
+
+        artist = ToCleanUrl(artist);
+        if(artist.startsWith("-"))
+            artist = artist.substring(1,artist.length());
+
+        music = ToCleanUrl(music);
+
+        String url = source + artist + "/" + music;
+
         Document document = null;
+
         try {
             document = Jsoup.connect(url).get();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        String value = document.body().select(".p402_premium").get(0).html();
-
-        return value;
+        finally {
+            return  document;
+        }
     }
 
 
