@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Spotify com letras e curiosidades sobre seu artista preferido</string>
+
+    <!-- Lyrics Page -->
+    <string name="scroll_speed">Velocidade  do scroll</string>
+</resources>
