@@ -1,70 +1,69 @@
 package com.PauloHDSousa.SpotifyWithLyricsInside;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 
-import android.content.Context;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.PauloHDSousa.Services.AppPreferences;
 import com.PauloHDSousa.Services.Services;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
+import com.spotify.android.appremote.api.ContentApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
+import com.spotify.android.appremote.internal.ContentApiImpl;
 import com.spotify.protocol.client.CallResult;
+import com.spotify.protocol.types.ListItem;
+import com.spotify.protocol.types.ListItems;
 import com.spotify.protocol.types.Track;
-
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQUEST_CODE = 1337;
+    private static final int REQUEST_CODE = 2337;
     private static final String REDIRECT_URI = "http://com.PauloHDSousa.SpotifyWithLyricsInside://callback";
     SpotifyAppRemote mSpotifyAppRemote;
     ImageView ivAlbum;
     TextView tvCurrentSong;
     Track lastTrack;
-    ImageButton ibNext, ibStop, ibPrevious, ibPlay, ibShuffle;
-    FloatingActionButton fbSlowScroll,fbSpeedScroll, fbStopPlayScroll;
+    ImageButton ibNext, ibStop, ibPrevious, ibPlay, ibShuffle, ibSpotify, ibClosePlayer;
+    FloatingActionButton fbSlowScroll, fbSpeedScroll, fbStopPlayScroll;
     WebView webView;
     Handler mHandler = new Handler();
     boolean autoScrollOn = true;
     int scrollSpeed = 2;
-    int scrollUpdateInMS = 200;
+    int scrollUpdateInMS = 400;
     boolean isShuffleOn;
+    boolean isSongPaused;
     SeekBar sbMusic;
     Handler seekHandler = new Handler();
+    String currentLibrary = "";
+    LinearLayout linearLayoutMusicContnet;
 
     //Auto-Scroll
-    Runnable mScrollDown = new Runnable()
-    {
-        public void run()
-        {
-            if(autoScrollOn)
-            {
+    Runnable mScrollDown = new Runnable() {
+        public void run() {
+            if (autoScrollOn && !isSongPaused) {
                 webView.scrollBy(0, scrollSpeed);
                 mHandler.postDelayed(this, scrollUpdateInMS);
             }
@@ -76,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        ivAlbum = (ImageView)findViewById(R.id.ivAlbum);
+        ivAlbum = (ImageView) findViewById(R.id.ivAlbum);
         tvCurrentSong = (TextView) findViewById(R.id.tvCurrentSong);
 
 
@@ -89,22 +88,17 @@ public class MainActivity extends AppCompatActivity {
 
         SpotifyAppRemote.connect(this, connectionParams, new Connector.ConnectionListener() {
 
-                    @Override
-                    public void onConnected(SpotifyAppRemote spotifyAppRemote) {
-                         mSpotifyAppRemote = spotifyAppRemote;
-                        Log.d("MainActivity", "Connected! Yay!");
+            @Override
+            public void onConnected(SpotifyAppRemote spotifyAppRemote) {
+                mSpotifyAppRemote = spotifyAppRemote;
+                connected();
+            }
 
-                        // Now you can start interacting with App Remote
-                        connected();
-                    }
-
-                    @Override
-                    public void onFailure(Throwable throwable) {
-                        Log.e("MainActivity", throwable.getMessage(), throwable);
-
-                        // Something went wrong when attempting to connect! Handle errors here
-                    }
-                });
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.e("MainActivity", throwable.getMessage(), throwable);
+            }
+        });
 
     }
 
@@ -121,34 +115,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void connected() {
+
+        // mSpotifyAppRemote.getContentApi().getRecommendedContentItems(ContentApi.ContentType.FITNESS).setResultCallback(recommended ->{
+        //     ListItem[] items = recommended.items;
+        // });
+
         // Subscribe to PlayerState
         mSpotifyAppRemote.getPlayerApi()
                 .subscribeToPlayerState()
                 .setEventCallback(playerState -> {
 
+                    isSongPaused = playerState.isPaused;
+
                     //Handle the STOP / PLAY button
-                    if(playerState.isPaused){
+                    if (isSongPaused) {
                         ibPlay.setVisibility(View.VISIBLE);
                         ibStop.setVisibility(View.GONE);
-                    }
-                    else{
+                    } else {
                         ibStop.setVisibility(View.VISIBLE);
                         ibPlay.setVisibility(View.GONE);
-
                     }
 
                     //Handle the Shuffle button
                     isShuffleOn = playerState.playbackOptions.isShuffling;
-                    if(isShuffleOn){
+                    if (isShuffleOn) {
                         onShuffleOn();
-                    }
-                    else{
+                    } else {
                         onShuffleOff();
                     }
 
                     final Track track = playerState.track;
 
                     if (track != null && lastTrack != track) {
+
+                        currentLibrary = track.uri;
+
                         seekHandler.removeCallbacks(run);
 
                         lastTrack = track;
@@ -156,18 +157,20 @@ public class MainActivity extends AppCompatActivity {
                         sbMusic.setMax((int) track.duration);
                         int playbackPosition = (int) playerState.playbackPosition;
                         sbMusic.setProgress(playbackPosition);
-                        run.run();
+
+                        if (!isSongPaused)
+                            run.run();
 
                         String artist = track.artist.name;
-                        String music  = track.name;
+                        String music = track.name;
 
                         //Loading the current Album IMAGE
                         CallResult<Bitmap> imageBitmap = mSpotifyAppRemote.getImagesApi().getImage(track.imageUri);
-                        imageBitmap.setResultCallback(bitmap ->    ivAlbum.setImageBitmap(bitmap));
+                        imageBitmap.setResultCallback(bitmap -> ivAlbum.setImageBitmap(bitmap));
 
                         tvCurrentSong.setText(artist + " - " + music);
 
-                        new Services(this).execute(artist,music);
+                        new Services(this).execute(artist, music);
                     }
                 });
     }
@@ -181,48 +184,66 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         //SharedPrefs
         AppPreferences appPreferences = AppPreferences.getInstance(this);
         scrollSpeed = appPreferences.getInt(AppPreferences.ScrollSpeedKey);
+        ProgressBar pbLoadingHTML = findViewById(R.id.pbLoadingHTML);
 
         //Music HTML
-        webView = (WebView)findViewById(R.id.wbLyrics);
+        webView = (WebView) findViewById(R.id.wbLyrics);
         webView.setVerticalScrollBarEnabled(false);
+        webView.setWebChromeClient(new WebChromeClient() {
+            public void onProgressChanged(WebView view, int progress) {
+                pbLoadingHTML.setProgress(progress);
+                if (progress == 100) {
+                    pbLoadingHTML.setVisibility(View.GONE);
+
+                } else {
+                    pbLoadingHTML.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
         //Music Controls
-        ibNext =  (ImageButton)findViewById(R.id.ibNext);
+        linearLayoutMusicContnet = (LinearLayout) findViewById(R.id.layoutMusicContent);
+        ibNext = (ImageButton) findViewById(R.id.ibNext);
         ibStop = (ImageButton) findViewById(R.id.ibStop);
-        ibPrevious = (ImageButton)findViewById(R.id.ibPrevious);
-        ibPlay = (ImageButton)findViewById(R.id.ibPlay);
-        ibShuffle = (ImageButton)findViewById(R.id.ibShuffle);
-        sbMusic =  (SeekBar) findViewById(R.id.sbMusic);
+        ibPrevious = (ImageButton) findViewById(R.id.ibPrevious);
+        ibPlay = (ImageButton) findViewById(R.id.ibPlay);
+        ibShuffle = (ImageButton) findViewById(R.id.ibShuffle);
+        sbMusic = (SeekBar) findViewById(R.id.sbMusic);
+        ibSpotify = (ImageButton) findViewById(R.id.ibSpotify);
+        ibClosePlayer = (ImageButton) findViewById(R.id.ibClosePlayer);
+
 
         //Music Bar
         sbMusic.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
-           @Override
-           public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
-           }
+            }
 
-           @Override
-           public void onStartTrackingTouch(SeekBar seekBar) {
-               seekHandler.removeCallbacks(run);
-           }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                seekHandler.removeCallbacks(run);
+            }
 
-           @Override
-           public void onStopTrackingTouch(SeekBar seekBar) {
-               seekHandler.removeCallbacks(run);
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekHandler.removeCallbacks(run);
 
-               long currentPosition = seekBar.getProgress();
+                long currentPosition = seekBar.getProgress();
 
                 mSpotifyAppRemote.getPlayerApi().seekTo(currentPosition);
 
-               run.run();
-           }
-       });
+                if (!isSongPaused)
+                    run.run();
+            }
+        });
 
         //Scroll Speed Controls
         fbSpeedScroll = (FloatingActionButton) findViewById(R.id.fbspeedScroll);
@@ -240,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
         fbSlowScroll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(scrollSpeed > 1) {
+                if (scrollSpeed > 0) {
                     scrollSpeed--;
                     appPreferences.storeInt(AppPreferences.ScrollSpeedKey, scrollSpeed);
                 }
@@ -250,11 +271,15 @@ public class MainActivity extends AppCompatActivity {
         fbStopPlayScroll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                autoScrollOn = !autoScrollOn;
-                int backgroundImage = android.R.drawable.ic_media_play;
 
-                if(autoScrollOn) {
-                    backgroundImage = android.R.drawable.ic_media_pause;
+                if (isSongPaused)
+                    return;
+
+                autoScrollOn = !autoScrollOn;
+                int backgroundImage = R.drawable.play;
+
+                if (autoScrollOn) {
+                    backgroundImage = R.drawable.pause;
                     mScrollDown.run();
                 }
                 fbStopPlayScroll.setImageResource(backgroundImage);
@@ -262,10 +287,46 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //Music Control Buttons Actions
+        ibClosePlayer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (linearLayoutMusicContnet.getVisibility() == View.VISIBLE) {
+                    linearLayoutMusicContnet.animate()
+                            .translationY(linearLayoutMusicContnet.getHeight())
+                            .alpha(0.0f)
+                            .setDuration(500)
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    linearLayoutMusicContnet.setVisibility(View.GONE);
+                                }
+                            });
+
+                    ibClosePlayer.setImageResource(android.R.drawable.arrow_up_float);
+                }
+                else {
+                    linearLayoutMusicContnet.animate()
+                            .translationY(0)
+                            .alpha(1.0f)
+                            .setDuration(500)
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    linearLayoutMusicContnet.setVisibility(View.VISIBLE);
+                                }
+                            });
+                    ibClosePlayer.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+                }
+            }
+        });
+
         ibNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mSpotifyAppRemote.getPlayerApi().skipNext();
+                webView.scrollTo(0, 0);
             }
         });
 
@@ -276,6 +337,8 @@ public class MainActivity extends AppCompatActivity {
                 ibStop.setVisibility(View.GONE);
                 ibPlay.setVisibility(View.VISIBLE);
                 autoScrollOn = false;
+
+                seekHandler.removeCallbacks(run);
             }
         });
 
@@ -293,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mSpotifyAppRemote.getPlayerApi().skipPrevious();
+                webView.scrollTo(0, 0);
             }
         });
 
@@ -303,18 +367,28 @@ public class MainActivity extends AppCompatActivity {
 
                 isShuffleOn = !isShuffleOn;
 
-                if(isShuffleOn)
+                if (isShuffleOn)
                     onShuffleOn();
                 else
                     onShuffleOff();
             }
         });
-    }
-    void onShuffleOn(){
-        ibShuffle.setImageResource(R.drawable.ic_launcher_background);
+
+        ibSpotify.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String uri = currentLibrary;
+                Intent launcher = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                startActivity(launcher);
+            }
+        });
     }
 
-    void onShuffleOff(){
+    void onShuffleOn() {
+        ibShuffle.setImageResource(R.drawable.shuffleon);
+    }
+
+    void onShuffleOff() {
         ibShuffle.setImageResource(R.drawable.shuffle);
     }
 
@@ -345,6 +419,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (scrollY >= total - 1) {
                     autoScrollOn = false;
+                } else {
+                    autoScrollOn = true;
                 }
             }
         });
