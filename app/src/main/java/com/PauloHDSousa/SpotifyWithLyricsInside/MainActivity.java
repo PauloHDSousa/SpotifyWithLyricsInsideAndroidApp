@@ -1,32 +1,43 @@
 package com.PauloHDSousa.SpotifyWithLyricsInside;
 
-import androidx.appcompat.app.AppCompatActivity;
+ import androidx.appcompat.app.AppCompatActivity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+ import android.animation.AnimatorSet;
+ import android.animation.LayoutTransition;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.transition.ChangeBounds;
+import android.transition.TransitionManager;
+import android.transition.TransitionSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.WebChromeClient;
+ import android.view.animation.AccelerateDecelerateInterpolator;
+ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.PauloHDSousa.Services.AppPreferences;
 import com.PauloHDSousa.Services.Services;
+import com.PauloHDSousa.Utils.ResizeAnimation;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -58,7 +69,8 @@ public class MainActivity extends AppCompatActivity {
     SeekBar sbMusic;
     Handler seekHandler = new Handler();
     String currentLibrary = "";
-    LinearLayout linearLayoutMusicContnet;
+    LinearLayout linearLayoutMusicContnet, layoutHTMLContent;
+    RelativeLayout relativeLayoutHTMLContent;
 
     //Auto-Scroll
     Runnable mScrollDown = new Runnable() {
@@ -209,6 +221,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Music Controls
         linearLayoutMusicContnet = (LinearLayout) findViewById(R.id.layoutMusicContent);
+        layoutHTMLContent= (LinearLayout) findViewById(R.id.layoutHTMLContent);
+
         ibNext = (ImageButton) findViewById(R.id.ibNext);
         ibStop = (ImageButton) findViewById(R.id.ibStop);
         ibPrevious = (ImageButton) findViewById(R.id.ibPrevious);
@@ -286,39 +300,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
         //Music Control Buttons Actions
         ibClosePlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (linearLayoutMusicContnet.getVisibility() == View.VISIBLE) {
-                    linearLayoutMusicContnet.animate()
-                            .translationY(linearLayoutMusicContnet.getHeight())
-                            .alpha(0.0f)
-                            .setDuration(500)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    super.onAnimationEnd(animation);
-                                    linearLayoutMusicContnet.setVisibility(View.GONE);
-                                }
-                            });
+                linearLayoutMusicContnet.animate()
+                    .translationY(linearLayoutMusicContnet.getHeight() - 50 )
+                    .setDuration(500)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                        }
+                });
 
-                    ibClosePlayer.setImageResource(android.R.drawable.arrow_up_float);
-                }
-                else {
-                    linearLayoutMusicContnet.animate()
-                            .translationY(0)
-                            .alpha(1.0f)
-                            .setDuration(500)
-                            .setListener(new AnimatorListenerAdapter() {
-                                @Override
-                                public void onAnimationEnd(Animator animation) {
-                                    super.onAnimationEnd(animation);
-                                    linearLayoutMusicContnet.setVisibility(View.VISIBLE);
-                                }
-                            });
-                    ibClosePlayer.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
-                }
             }
         });
 
