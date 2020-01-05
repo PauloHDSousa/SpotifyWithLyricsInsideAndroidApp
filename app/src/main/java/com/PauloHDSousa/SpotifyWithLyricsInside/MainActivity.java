@@ -16,11 +16,13 @@ import android.provider.MediaStore;
 import android.transition.ChangeBounds;
 import android.transition.TransitionManager;
 import android.transition.TransitionSet;
-import android.util.Log;
+ import android.util.DisplayMetrics;
+ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
+ import android.view.ViewTreeObserver;
+ import android.view.Window;
 import android.view.WindowManager;
  import android.view.animation.AccelerateDecelerateInterpolator;
  import android.webkit.WebChromeClient;
@@ -37,7 +39,8 @@ import android.widget.Toast;
 
 import com.PauloHDSousa.Services.AppPreferences;
 import com.PauloHDSousa.Services.Services;
-import com.PauloHDSousa.Utils.ResizeAnimation;
+ import com.PauloHDSousa.Utils.Internet;
+ import com.PauloHDSousa.Utils.ResizeAnimation;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
@@ -58,38 +61,45 @@ public class MainActivity extends AppCompatActivity {
     TextView tvCurrentSong;
     Track lastTrack;
     ImageButton ibNext, ibStop, ibPrevious, ibPlay, ibShuffle, ibSpotify, ibClosePlayer;
-    FloatingActionButton fbSlowScroll, fbSpeedScroll, fbStopPlayScroll;
+    FloatingActionButton fbSlowScroll, fbSpeedScroll;
     WebView webView;
     Handler mHandler = new Handler();
     boolean autoScrollOn = true;
     int scrollSpeed = 2;
     int scrollUpdateInMS = 400;
-    boolean isShuffleOn;
-    boolean isSongPaused;
+    boolean isSongPaused, isMusicContentHide,isShuffleOn;
+    boolean isFirstLoad = true;
     SeekBar sbMusic;
     Handler seekHandler = new Handler();
     String currentLibrary = "";
-    LinearLayout linearLayoutMusicContnet, layoutHTMLContent;
-    RelativeLayout relativeLayoutHTMLContent;
-
+    LinearLayout linearLayoutMusicContnet;
+    RelativeLayout relativeWebView;
+    ProgressBar pbLoadingHTML;
     //Auto-Scroll
     Runnable mScrollDown = new Runnable() {
         public void run() {
-            if (autoScrollOn && !isSongPaused) {
+            if (autoScrollOn && !isSongPaused)
                 webView.scrollBy(0, scrollSpeed);
-                mHandler.postDelayed(this, scrollUpdateInMS);
-            }
+
+            mHandler.postDelayed(this, scrollUpdateInMS);
         }
     };
-
 
     @Override
     protected void onStart() {
         super.onStart();
+        Internet internet = new Internet(this);
+
+        //If there is no internet, move to Another Activity
+        if(!internet.isNetworkConnected()){
+            Intent myIntent = new Intent(MainActivity.this, InternetLostActivity.class);
+            startActivity(myIntent);
+            return;
+        }
 
         ivAlbum = (ImageView) findViewById(R.id.ivAlbum);
         tvCurrentSong = (TextView) findViewById(R.id.tvCurrentSong);
-
+        pbLoadingHTML = findViewById(R.id.pbLoadingHTML);
 
         ConnectionParams connectionParams =
                 new ConnectionParams.Builder("9e5381fc5bb34ce2a0e68dadd7662977")
@@ -132,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
         //     ListItem[] items = recommended.items;
         // });
 
+
         // Subscribe to PlayerState
         mSpotifyAppRemote.getPlayerApi()
                 .subscribeToPlayerState()
@@ -139,31 +150,44 @@ public class MainActivity extends AppCompatActivity {
 
                     isSongPaused = playerState.isPaused;
 
-                    //Handle the STOP / PLAY button
-                    if (isSongPaused) {
-                        ibPlay.setVisibility(View.VISIBLE);
-                        ibStop.setVisibility(View.GONE);
-                    } else {
-                        ibStop.setVisibility(View.VISIBLE);
-                        ibPlay.setVisibility(View.GONE);
-                    }
+                    if(isFirstLoad) {
+                        //Handle the STOP / PLAY button
+                        if (isSongPaused) {
+                            ibPlay.setVisibility(View.VISIBLE);
+                            ibStop.setVisibility(View.GONE);
+                        } else {
+                            ibStop.setVisibility(View.VISIBLE);
+                            ibPlay.setVisibility(View.GONE);
+                        }
 
-                    //Handle the Shuffle button
-                    isShuffleOn = playerState.playbackOptions.isShuffling;
-                    if (isShuffleOn) {
-                        onShuffleOn();
-                    } else {
-                        onShuffleOff();
+                        //Handle the Shuffle button
+                        isShuffleOn = playerState.playbackOptions.isShuffling;
+                        if (isShuffleOn) {
+                            onShuffleOn();
+                        } else {
+                            onShuffleOff();
+                        }
+
+                        isFirstLoad = false;
                     }
 
                     final Track track = playerState.track;
 
-                    if (track != null && lastTrack != track) {
+                    if (track != null && lastTrack == null || !lastTrack.name.equals(track.name)) {
 
+                        //Some lyrics takes longer to render HTML, it prevents to show the wrong lyric on a song
+                        webView.setAlpha(0f);
+
+                        //Loading bar
+                        pbLoadingHTML.setVisibility(View.VISIBLE);
+
+                        //Current Library to open on Spotify link
                         currentLibrary = track.uri;
 
+                        //Stops the music bar
                         seekHandler.removeCallbacks(run);
 
+                        //Saves the last track to not call again
                         lastTrack = track;
 
                         sbMusic.setMax((int) track.duration);
@@ -202,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         //SharedPrefs
         AppPreferences appPreferences = AppPreferences.getInstance(this);
         scrollSpeed = appPreferences.getInt(AppPreferences.ScrollSpeedKey);
-        ProgressBar pbLoadingHTML = findViewById(R.id.pbLoadingHTML);
+
 
         //Music HTML
         webView = (WebView) findViewById(R.id.wbLyrics);
@@ -221,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Music Controls
         linearLayoutMusicContnet = (LinearLayout) findViewById(R.id.layoutMusicContent);
-        layoutHTMLContent= (LinearLayout) findViewById(R.id.layoutHTMLContent);
+        relativeWebView = (RelativeLayout) findViewById(R.id.rlWebView);
 
         ibNext = (ImageButton) findViewById(R.id.ibNext);
         ibStop = (ImageButton) findViewById(R.id.ibStop);
@@ -232,6 +256,31 @@ public class MainActivity extends AppCompatActivity {
         ibSpotify = (ImageButton) findViewById(R.id.ibSpotify);
         ibClosePlayer = (ImageButton) findViewById(R.id.ibClosePlayer);
 
+
+        ViewTreeObserver viewTreeObserver = linearLayoutMusicContnet.getViewTreeObserver();
+        if (viewTreeObserver.isAlive()) {
+            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewHeight = linearLayoutMusicContnet.getHeight();
+
+                    if(viewHeight != 0) {
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                        int height = metrics.heightPixels;
+
+                        height = height - viewHeight;
+
+                        ViewGroup.LayoutParams params = webView.getLayoutParams();
+                        params.height = height;
+
+                        webView.setLayoutParams(params);
+
+                        linearLayoutMusicContnet.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                }
+            });
+        }
 
         //Music Bar
         sbMusic.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -262,7 +311,6 @@ public class MainActivity extends AppCompatActivity {
         //Scroll Speed Controls
         fbSpeedScroll = (FloatingActionButton) findViewById(R.id.fbspeedScroll);
         fbSlowScroll = (FloatingActionButton) findViewById(R.id.fbslowScroll);
-        fbStopPlayScroll = (FloatingActionButton) findViewById(R.id.fbStopPlayScroll);
 
         fbSpeedScroll.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -282,40 +330,71 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        fbStopPlayScroll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (isSongPaused)
-                    return;
-
-                autoScrollOn = !autoScrollOn;
-                int backgroundImage = R.drawable.play;
-
-                if (autoScrollOn) {
-                    backgroundImage = R.drawable.pause;
-                    mScrollDown.run();
-                }
-                fbStopPlayScroll.setImageResource(backgroundImage);
-            }
-        });
-
-
 
         //Music Control Buttons Actions
         ibClosePlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                linearLayoutMusicContnet.animate()
-                    .translationY(linearLayoutMusicContnet.getHeight() - 50 )
-                    .setDuration(500)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                        }
-                });
+                if(isMusicContentHide){
+                    linearLayoutMusicContnet.animate()
+                            .translationY(0)
+                            .setDuration(500)
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
 
+                                    int viewHeight = linearLayoutMusicContnet.getHeight();
+
+                                    if (viewHeight != 0) {
+                                        DisplayMetrics metrics = new DisplayMetrics();
+                                        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                                        int height = metrics.heightPixels;
+
+                                        height = height - viewHeight;
+
+                                        ViewGroup.LayoutParams params = webView.getLayoutParams();
+                                        params.height = height;
+
+                                        webView.setLayoutParams(params);
+                                    }
+                                }
+                            });
+
+
+
+                    ibClosePlayer.setImageResource(R.drawable.down);
+                    isMusicContentHide = false;
+                }
+                else {
+                    linearLayoutMusicContnet.animate()
+                            .translationY(linearLayoutMusicContnet.getHeight() - ibClosePlayer.getHeight())
+                            .setDuration(500)
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                }
+                            });
+
+                    int viewHeight = linearLayoutMusicContnet.getHeight();
+
+                    if (viewHeight != 0) {
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                        int height = metrics.heightPixels;
+
+                        height = height + viewHeight;
+
+                        ViewGroup.LayoutParams params = webView.getLayoutParams();
+                        params.height = height;
+
+                        webView.setLayoutParams(params);
+                    }
+
+                    ibClosePlayer.setImageResource(R.drawable.up);
+                    isMusicContentHide = true;
+                }
             }
         });
 
@@ -346,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
                 ibPlay.setVisibility(View.GONE);
                 ibStop.setVisibility(View.VISIBLE);
                 autoScrollOn = true;
+                mScrollDown.run();
             }
         });
 
@@ -402,6 +482,9 @@ public class MainActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 autoScrollOn = true;
                 webView.scrollBy(0, 0);
+
+                webView.setAlpha(0f);
+                webView.animate().alpha(1f).setDuration(500);
             }
         });
 
