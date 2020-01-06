@@ -2,31 +2,24 @@ package com.PauloHDSousa.SpotifyWithLyricsInside;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.PauloHDSousa.Services.Services;
 import com.PauloHDSousa.Utils.Internet;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.ContentApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.CallResult;
 import com.spotify.protocol.types.ListItem;
-import com.spotify.protocol.types.Track;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -39,12 +32,17 @@ public class HomeActivity extends AppCompatActivity {
     SpotifyAppRemote mSpotifyAppRemote;
     LinearLayout llPlaylists;
     ImageButton ibDrivePlaylist, ibFitnessPlaylist;
+    Button btnOuvirComLetra;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_home);
+
+        AdView mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     @Override
@@ -54,6 +52,13 @@ public class HomeActivity extends AppCompatActivity {
         llPlaylists = findViewById(R.id.llPlaylists);
         ibDrivePlaylist  = (ImageButton) findViewById(R.id.ibDrivePlaylist);
         ibFitnessPlaylist =(ImageButton) findViewById(R.id.ibFitnessPlaylist);
+        btnOuvirComLetra = (Button) findViewById(R.id.btnOuvirComLetra);
+
+        btnOuvirComLetra.setOnClickListener(v ->{
+            Intent myIntent = new Intent(this, MainActivity.class);
+            startActivity(myIntent);
+            return;
+        });
 
         ibDrivePlaylist.setOnClickListener(v -> {
             loadPlaylistSuggestion(ContentApi.ContentType.AUTOMOTIVE);
@@ -63,9 +68,6 @@ public class HomeActivity extends AppCompatActivity {
         ibFitnessPlaylist.setOnClickListener(v -> {
             loadPlaylistSuggestion(ContentApi.ContentType.FITNESS);
         });
-
-
-
 
         Internet internet = new Internet(this);
 

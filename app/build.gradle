@@ -29,9 +29,17 @@ repositories {
     }
 }
 
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':spotify-app-remote-release-0.7.0')
+    implementation 'com.google.android.gms:play-services-ads:18.3.0'
     implementation  'org.apache.commons:commons-lang3:3.7'
     implementation 'com.spotify.android:auth:1.1.0'
     implementation 'androidx.browser:browser:1.0.0'

@@ -16,9 +16,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <com.google.android.gms.ads.AdView
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                app:adSize="SMART_BANNER"
+                app:adUnitId="ca-app-pub-3940256099942544/6300978111"></com.google.android.gms.ads.AdView>
+
+
             <TextView
                 android:id="@+id/textView4"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:fontFamily="casual"
@@ -27,14 +36,12 @@
                 android:textColor="#87BB73"
                 android:textSize="25dp" />
 
-
             <ImageView
                 android:id="@+id/ibRate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="50dp"
+                android:layout_marginRight="10dp"
                 app:srcCompat="@drawable/rate" />
 
 
@@ -42,9 +49,8 @@
                 android:id="@+id/ibTalkToUs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/ibRate"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="20dp"
+                android:layout_marginRight="70dp"
                 app:srcCompat="@drawable/talk_to_us" />
 
         </RelativeLayout>
@@ -59,7 +65,6 @@
             android:textAlignment="center"
             android:textColor="#87BB73"
             android:textSize="20dp" />
-
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -84,7 +89,7 @@
         </LinearLayout>
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/btnOuvirComLetra"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#87BB73"
