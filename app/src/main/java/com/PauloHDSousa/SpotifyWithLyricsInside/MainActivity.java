@@ -41,7 +41,9 @@ import com.PauloHDSousa.Services.AppPreferences;
 import com.PauloHDSousa.Services.Services;
  import com.PauloHDSousa.Utils.Internet;
  import com.PauloHDSousa.Utils.ResizeAnimation;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+ import com.google.android.gms.ads.AdRequest;
+ import com.google.android.gms.ads.AdView;
+ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.ContentApi;
@@ -222,6 +224,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        AdView mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
 
         //SharedPrefs
         AppPreferences appPreferences = AppPreferences.getInstance(this);

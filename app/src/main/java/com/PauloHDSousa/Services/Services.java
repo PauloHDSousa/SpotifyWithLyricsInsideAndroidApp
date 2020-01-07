@@ -56,8 +56,13 @@ public class Services extends AsyncTask<String, Void, String> {
                 }
             }
         }
+        
+        if(HTML.isEmpty()) {
+            HTML = "<center><h1>Música não foi encontrada </h1> ";
+            HTML += "<p> Não foi possível encontrar a música, um registro foi gerado e dentro de alguns dias isso será resolvido</center>";
+        }
 
-        return  HTML;
+        return  "<br>" + HTML;
     }
 
 

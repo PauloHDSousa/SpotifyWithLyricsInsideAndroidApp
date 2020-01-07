@@ -22,15 +22,17 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
                 app:adSize="SMART_BANNER"
-                app:adUnitId="ca-app-pub-3940256099942544/6300978111"></com.google.android.gms.ads.AdView>
+                app:adUnitId="ca-app-pub-3940256099942544/6300978111">
+            </com.google.android.gms.ads.AdView>
 
 
             <TextView
                 android:id="@+id/textView4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
                 android:layout_marginTop="10dp"
-                android:fontFamily="casual"
+                android:fontFamily="sans-serif-condensed"
                 android:text="Spotify com Letras"
                 android:textAlignment="center"
                 android:textColor="#87BB73"
@@ -59,23 +61,33 @@
             android:id="@+id/textView6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="casual"
+            android:layout_marginTop="5dp"
+            android:fontFamily="sans-serif-condensed"
             android:text="Playlists feitas para você"
             android:textAlignment="center"
             android:textColor="#87BB73"
             android:textSize="20dp" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_horizontal"
             android:orientation="horizontal">
+
+
+            <ImageButton
+                android:id="@+id/ibDefaultPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/song" />
 
             <ImageButton
                 android:id="@+id/ibFitnessPlaylist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="20dp"
                 android:background="@android:color/transparent"
                 app:srcCompat="@drawable/fitness" />
 
@@ -83,9 +95,36 @@
                 android:id="@+id/ibDrivePlaylist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="20dp"
                 android:background="@android:color/transparent"
                 app:srcCompat="@drawable/drive" />
+
+
+            <ImageButton
+                android:id="@+id/ibWakePlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/awake" />
+
+            <ImageButton
+                android:id="@+id/ibFirePlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/fire" />
+
+            <ImageButton
+                android:id="@+id/ibSleepPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:background="@android:color/transparent"
+                app:srcCompat="@drawable/sleep" />
+
+
         </LinearLayout>
 
         <Button
@@ -102,11 +141,17 @@
             android:layout_height="fill_parent">
 
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical" />
 
             <LinearLayout
                 android:id="@+id/llPlaylists"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:orientation="vertical">
 
             </LinearLayout>
