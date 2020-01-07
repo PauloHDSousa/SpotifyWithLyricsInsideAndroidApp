@@ -14,7 +14,8 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp">
 
             <com.google.android.gms.ads.AdView
                 android:id="@+id/adView"
@@ -22,8 +23,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
                 app:adSize="SMART_BANNER"
-                app:adUnitId="ca-app-pub-3940256099942544/6300978111">
-            </com.google.android.gms.ads.AdView>
+                app:adUnitId="ca-app-pub-3940256099942544/6300978111"></com.google.android.gms.ads.AdView>
 
 
             <TextView
@@ -35,10 +35,10 @@
                 android:fontFamily="sans-serif-condensed"
                 android:text="Spotify com Letras"
                 android:textAlignment="center"
-                android:textColor="#87BB73"
+                android:textColor="@color/actionButton"
                 android:textSize="25dp" />
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/ibRate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -65,7 +65,7 @@
             android:fontFamily="sans-serif-condensed"
             android:text="Playlists feitas para você"
             android:textAlignment="center"
-            android:textColor="#87BB73"
+            android:textColor="@color/actionButton"
             android:textSize="20dp" />
 
         <LinearLayout
@@ -131,22 +131,26 @@
             android:id="@+id/btnOuvirComLetra"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#87BB73"
+            android:backgroundTint="@color/actionButton"
             android:layout_marginRight="10dp"
             android:layout_marginLeft="10dp"
             android:text="Ouvir com letra" />
+
+
+        <ProgressBar
+            android:id="@+id/pbLoadingPlaylist"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminateDrawable="@drawable/progress"
+            android:layout_marginTop="150dp" />
 
         <ScrollView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
 
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center_vertical" />
+
 
             <LinearLayout
                 android:id="@+id/llPlaylists"

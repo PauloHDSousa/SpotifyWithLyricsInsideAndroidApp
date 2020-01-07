@@ -3,15 +3,18 @@ package com.PauloHDSousa.SpotifyWithLyricsInside;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -23,10 +26,7 @@ import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.ContentApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.CallResult;
-import com.spotify.protocol.types.Image;
-import com.spotify.protocol.types.ImageUri;
 import com.spotify.protocol.types.ListItem;
-import com.spotify.protocol.types.Uri;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -38,9 +38,10 @@ public class HomeActivity extends AppCompatActivity {
     private static final String REDIRECT_URI = "http://com.PauloHDSousa.SpotifyWithLyricsInside://callback";
     SpotifyAppRemote mSpotifyAppRemote;
     LinearLayout llPlaylists;
-    ImageButton ibDrivePlaylist, ibFitnessPlaylist, ibSleepPlaylist, ibWakePlaylist,ibDefaultPlaylist,ibFirePlaylist;
+    ImageButton ibDrivePlaylist, ibFitnessPlaylist, ibSleepPlaylist, ibWakePlaylist,ibDefaultPlaylist,ibFirePlaylist, ibRate;
     Button btnOuvirComLetra;
     LinearLayout horizontalParent;
+    ProgressBar pbLoadingPlaylist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,9 +62,12 @@ public class HomeActivity extends AppCompatActivity {
         ibDrivePlaylist  = (ImageButton) findViewById(R.id.ibDrivePlaylist);
         ibFitnessPlaylist =(ImageButton) findViewById(R.id.ibFitnessPlaylist);
         ibSleepPlaylist=(ImageButton) findViewById(R.id.ibSleepPlaylist);
-        ibWakePlaylist=(ImageButton) findViewById(R.id.ibWakePlaylist);
-        ibDefaultPlaylist=(ImageButton) findViewById(R.id.ibDefaultPlaylist);
-        ibFirePlaylist=(ImageButton) findViewById(R.id.ibFirePlaylist);
+        ibWakePlaylist =(ImageButton) findViewById(R.id.ibWakePlaylist);
+        ibDefaultPlaylist =(ImageButton) findViewById(R.id.ibDefaultPlaylist);
+        ibFirePlaylist =(ImageButton) findViewById(R.id.ibFirePlaylist);
+        ibRate = (ImageButton)findViewById(R.id.ibRate);
+
+        pbLoadingPlaylist = (ProgressBar)  findViewById(R.id.pbLoadingPlaylist);
 
 
         ibDefaultPlaylist.setBackgroundColor(getResources().getColor(R.color.selected));
@@ -74,6 +78,15 @@ public class HomeActivity extends AppCompatActivity {
             Intent myIntent = new Intent(this, MainActivity.class);
             startActivity(myIntent);
             return;
+        });
+
+        ibRate.setOnClickListener(v -> {
+            final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+            } catch (android.content.ActivityNotFoundException anfe) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+            }
         });
 
         ibDrivePlaylist.setOnClickListener(v -> {
@@ -158,6 +171,8 @@ public class HomeActivity extends AppCompatActivity {
 
     void loadPlaylistSuggestion(String playList){
 
+        pbLoadingPlaylist.setVisibility(View.VISIBLE);
+
         if(llPlaylists.getChildCount() > 0)
             llPlaylists.removeAllViews();
 
@@ -167,6 +182,8 @@ public class HomeActivity extends AppCompatActivity {
             for(ListItem playItem : recommendedItems){
                 AddItemToView(playItem);
             }
+
+            pbLoadingPlaylist.setVisibility(View.GONE);
         });
     }
 
