@@ -3,13 +3,12 @@ package com.PauloHDSousa.SpotifyWithLyricsInside;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,33 +18,40 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.PauloHDSousa.Broadcast.CurrentNetworkChangeReceiver;
+import com.PauloHDSousa.Models.Playlist;
+import com.PauloHDSousa.Utils.Playlists;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.ContentApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
-import com.spotify.protocol.client.CallResult;
-import com.spotify.protocol.types.ListItem;
+import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 public class HomeActivity extends AppCompatActivity {
 
 
     private static Activity context;
 
     private static final int REQUEST_CODE = 2337;
-    private static final String REDIRECT_URI = "http://com.PauloHDSousa.SpotifyWithLyricsInside://callback";
+    private static final String REDIRECT_URI = "com.PauloHDSousa.SpotifyWithLyricsInside://callback";
     SpotifyAppRemote mSpotifyAppRemote;
     LinearLayout llPlaylists;
-    ImageButton ibDrivePlaylist, ibFitnessPlaylist, ibSleepPlaylist, ibWakePlaylist,ibDefaultPlaylist,ibFirePlaylist, ibRate;
+    ImageButton ibDrivePlaylist, ibFitnessPlaylist,ibWakePlaylist,ibDefaultPlaylist,ibRate,ibShare;
     Button btnOuvirComLetra;
     LinearLayout horizontalParent;
     ProgressBar pbLoadingPlaylist;
+    ScrollView scrollView;
+
+
+    Playlists playlists = new Playlists();
 
     private CurrentNetworkChangeReceiver mNetworkReceiver;
 
@@ -71,6 +77,12 @@ public class HomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         unregisterReceiver();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SpotifyAppRemote.disconnect(mSpotifyAppRemote);
     }
 
     @Override
@@ -101,15 +113,21 @@ public class HomeActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        if(!isPackageInstalled("com.spotify.music", this.getPackageManager())){
+            Intent myIntent = new Intent(HomeActivity.this, SpotifyConnectionActivity.class);
+            startActivity(myIntent);
+        }
 
         llPlaylists = findViewById(R.id.llPlaylists);
+
         ibDrivePlaylist  = (ImageButton) findViewById(R.id.ibDrivePlaylist);
         ibFitnessPlaylist =(ImageButton) findViewById(R.id.ibFitnessPlaylist);
-        ibSleepPlaylist=(ImageButton) findViewById(R.id.ibSleepPlaylist);
         ibWakePlaylist =(ImageButton) findViewById(R.id.ibWakePlaylist);
         ibDefaultPlaylist =(ImageButton) findViewById(R.id.ibDefaultPlaylist);
-        ibFirePlaylist =(ImageButton) findViewById(R.id.ibFirePlaylist);
+        scrollView = (ScrollView)findViewById(R.id.svPlaylists);
+
         ibRate = (ImageButton)findViewById(R.id.ibRate);
+        ibShare= (ImageButton)findViewById(R.id.ibShare);
 
         pbLoadingPlaylist = (ProgressBar)  findViewById(R.id.pbLoadingPlaylist);
 
@@ -124,55 +142,53 @@ public class HomeActivity extends AppCompatActivity {
             return;
         });
 
+        ibShare.setOnClickListener(v -> {
+
+            final String appPackageName = getPackageName();
+            String app_name = getResources().getString(R.string.app_name);
+            String share = getResources().getString(R.string.share);
+            String share_message = getResources().getString(R.string.share_message);
+
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_SUBJECT, app_name);
+            intent.putExtra(Intent.EXTRA_TEXT, share_message + " https://play.google.com/store/apps/details?id=" + appPackageName);
+            startActivity(Intent.createChooser(intent, share));
+        });
+
         ibRate.setOnClickListener(v -> {
 
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.paulohdsousa.vocemeconhece"));
-            startActivity(intent);
-
-//
-          //  final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
-          //  try {
-          //      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-           // } catch (android.content.ActivityNotFoundException anfe) {
-          //      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
-            //}
+            final String appPackageName = getPackageName();
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+            } catch (android.content.ActivityNotFoundException anfe) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+            }
         });
 
         ibDrivePlaylist.setOnClickListener(v -> {
             setSelectedButton((ImageButton)v);
-            loadPlaylistSuggestion(ContentApi.ContentType.NAVIGATION);
-        });
-
-        ibFirePlaylist.setOnClickListener(v -> {
-            setSelectedButton((ImageButton)v);
-            loadPlaylistSuggestion(ContentApi.ContentType.AUTOMOTIVE);
+            loadPlaylistSuggestion(Playlists.PlaylistType.AUTOMOTIVE);
         });
 
         ibFitnessPlaylist.setOnClickListener(v -> {
             setSelectedButton((ImageButton)v);
-            loadPlaylistSuggestion(ContentApi.ContentType.FITNESS);
-        });
-
-        ibSleepPlaylist.setOnClickListener(v -> {
-            setSelectedButton((ImageButton)v);
-            loadPlaylistSuggestion(ContentApi.ContentType.SLEEP);
+            loadPlaylistSuggestion(Playlists.PlaylistType.FITNESS);
         });
 
         ibWakePlaylist.setOnClickListener(v -> {
             setSelectedButton((ImageButton)v);
-            loadPlaylistSuggestion(ContentApi.ContentType.WAKE);
+            loadPlaylistSuggestion(Playlists.PlaylistType.WAKE);
         });
 
         ibDefaultPlaylist.setOnClickListener(v -> {
             setSelectedButton((ImageButton)v);
-            loadPlaylistSuggestion(ContentApi.ContentType.DEFAULT);
+            loadPlaylistSuggestion(Playlists.PlaylistType.DEFAULT);
         });
 
         ConnectionParams connectionParams =
                 new ConnectionParams.Builder("9e5381fc5bb34ce2a0e68dadd7662977")
                         .setRedirectUri(REDIRECT_URI)
-                        .showAuthView(true)
                         .build();
 
 
@@ -186,7 +202,9 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Throwable throwable) {
-                Log.e("MainActivity", throwable.getMessage(), throwable);
+                Intent myIntent = new Intent(HomeActivity.this, SpotifyConnectionActivity.class);
+                startActivity(myIntent);
+                return;
             }
         });
 
@@ -196,38 +214,45 @@ public class HomeActivity extends AppCompatActivity {
 
         ibDrivePlaylist.setBackgroundColor(Color.TRANSPARENT);
         ibFitnessPlaylist.setBackgroundColor(Color.TRANSPARENT);
-        ibSleepPlaylist.setBackgroundColor(Color.TRANSPARENT);
         ibWakePlaylist.setBackgroundColor(Color.TRANSPARENT);
         ibDefaultPlaylist.setBackgroundColor(Color.TRANSPARENT);
-        ibFirePlaylist.setBackgroundColor(Color.TRANSPARENT);
 
         button.setBackgroundColor(getResources().getColor(R.color.selected));
     }
 
     private void connected() {
-        loadPlaylistSuggestion(ContentApi.ContentType.DEFAULT);
+        if(llPlaylists.getChildCount() == 0)
+            loadPlaylistSuggestion(ContentApi.ContentType.DEFAULT);
     }
 
     void loadPlaylistSuggestion(String playList){
+
+        scrollView.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollView.scrollTo(0, 0);
+                scrollView.pageScroll(View.FOCUS_UP);
+                scrollView.smoothScrollTo(0,0);
+            }
+        });
 
         pbLoadingPlaylist.setVisibility(View.VISIBLE);
 
         if(llPlaylists.getChildCount() > 0)
             llPlaylists.removeAllViews();
 
-        mSpotifyAppRemote.getContentApi().getRecommendedContentItems(playList).setResultCallback(recommended ->{
-            ListItem[] recommendedItems = recommended.items;
 
-            for(ListItem playItem : recommendedItems){
-                AddItemToView(playItem);
-            }
+        List<Playlist> recommendedItems = playlists.getPlayList(playList);
 
-            pbLoadingPlaylist.setVisibility(View.GONE);
-        });
+        for(Playlist playItem : recommendedItems) {
+            AddItemToView(playItem);
+        }
+
+        pbLoadingPlaylist.setVisibility(View.GONE);
     }
 
 
-    void AddItemToView(ListItem item){
+    void AddItemToView(Playlist item){
 
         if(horizontalParent == null || horizontalParent.getChildCount() == 2) {
             horizontalParent = new LinearLayout(this);
@@ -239,7 +264,7 @@ public class HomeActivity extends AppCompatActivity {
         parent.setOrientation(LinearLayout.VERTICAL);
 
         LinearLayout.LayoutParams parentParams  = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        parentParams.setMargins(15, 10, 15, 0);
+        parentParams.setMargins(15, 10, 30, 0);
 
         parent.setLayoutParams(parentParams);
 
@@ -251,32 +276,13 @@ public class HomeActivity extends AppCompatActivity {
         ibPlaylist.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         ibPlaylist.setBackground(null);
 
-        if(!item.imageUri.raw.equals("android.resource://com.spotify.music/drawable/mediaservice_browse")) {
-            CallResult<Bitmap> imageBitmap = mSpotifyAppRemote.getImagesApi().getImage(item.imageUri);
-            imageBitmap.setResultCallback(bitmap -> ibPlaylist.setImageBitmap(bitmap));
-        }else{
-            ibPlaylist.setBackgroundResource(R.drawable.playlist);
-        }
+        Picasso.get().load(item.ImageURL).placeholder(R.drawable.playlist).into(ibPlaylist);
 
         ibPlaylist.setOnClickListener(view -> {
-            mSpotifyAppRemote.getPlayerApi().play(item.uri);
+            mSpotifyAppRemote.getPlayerApi().play(item.URL);
         });
-
         //Add image button to item
         parent.addView(ibPlaylist);
-
-        TextView textView = new TextView(this);
-        RelativeLayout.LayoutParams tvParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.MATCH_PARENT);
-        tvParams.setMargins(20,0,0,0);
-        textView.setText(item.title);
-        textView.setLayoutParams(tvParams);
-        textView.setEllipsize(TextUtils.TruncateAt.END);
-        textView.setLines(1);
-        textView.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        //Add text to item
-        parent.addView(textView);
-
         //Add item to a Horizontal Layout
         horizontalParent.addView(parent);
 
@@ -284,9 +290,12 @@ public class HomeActivity extends AppCompatActivity {
             llPlaylists.addView(horizontalParent);
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        SpotifyAppRemote.disconnect(mSpotifyAppRemote);
+    public static boolean isPackageInstalled(String packageName, PackageManager packageManager) {
+        try {
+            return packageManager.getApplicationInfo(packageName, 0).enabled;
+        }
+        catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 }

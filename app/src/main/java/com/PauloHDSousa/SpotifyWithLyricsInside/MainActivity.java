@@ -1,6 +1,7 @@
 package com.PauloHDSousa.SpotifyWithLyricsInside;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
@@ -25,11 +26,13 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
 import com.PauloHDSousa.Broadcast.CurrentNetworkChangeReceiver;
 import com.PauloHDSousa.Services.AppPreferences;
 import com.PauloHDSousa.Services.Services;
 import com.PauloHDSousa.Utils.Internet;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.spotify.android.appremote.api.ConnectionParams;
@@ -43,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private CurrentNetworkChangeReceiver mNetworkReceiver;
 
     private static final int REQUEST_CODE = 2337;
-    private static final String REDIRECT_URI = "http://com.PauloHDSousa.SpotifyWithLyricsInside://callback";
+
+    private static final String REDIRECT_URI = "com.PauloHDSousa.SpotifyWithLyricsInside://callback";
     SpotifyAppRemote mSpotifyAppRemote;
     ImageView ivAlbum;
     TextView tvCurrentSong;
@@ -63,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout linearLayoutMusicContnet;
     RelativeLayout relativeWebView;
     ProgressBar pbLoadingHTML;
+    AdView mAdView;
+
     //Auto-Scroll
     Runnable mScrollDown = new Runnable() {
         public void run() {
@@ -125,12 +131,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void connected() {
-
-        // mSpotifyAppRemote.getContentApi().getRecommendedContentItems(ContentApi.ContentType.FITNESS).setResultCallback(recommended ->{
-        //     ListItem[] items = recommended.items;
-        // });
-
-
         // Subscribe to PlayerState
         mSpotifyAppRemote.getPlayerApi()
                 .subscribeToPlayerState()
@@ -138,16 +138,16 @@ public class MainActivity extends AppCompatActivity {
 
                     isSongPaused = playerState.isPaused;
 
-                    if (isFirstLoad) {
-                        //Handle the STOP / PLAY button
-                        if (isSongPaused) {
-                            ibPlay.setVisibility(View.VISIBLE);
-                            ibStop.setVisibility(View.GONE);
-                        } else {
-                            ibStop.setVisibility(View.VISIBLE);
-                            ibPlay.setVisibility(View.GONE);
-                        }
+                    //Handle the STOP / PLAY button
+                    if (isSongPaused) {
+                        ibPlay.setVisibility(View.VISIBLE);
+                        ibStop.setVisibility(View.GONE);
+                    } else {
+                        ibStop.setVisibility(View.VISIBLE);
+                        ibPlay.setVisibility(View.GONE);
+                    }
 
+                    if (isFirstLoad) {
                         //Handle the Shuffle button
                         isShuffleOn = playerState.playbackOptions.isShuffling;
                         if (isShuffleOn) {
@@ -160,8 +160,11 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     final Track track = playerState.track;
-
-                    if (track != null && lastTrack == null || !lastTrack.name.equals(track.name)) {
+                    if( track == null){
+                        //Sometimes, there isn't any song running
+                        mSpotifyAppRemote.getPlayerApi().play("spotify:track:6ooMCJR3I2XhHCHIpgWPvp");
+                    }
+                    else if (track != null && lastTrack == null || !lastTrack.name.equals(track.name)) {
 
                         //Some lyrics takes longer to render HTML, it prevents to show the wrong lyric on a song
                         webView.setAlpha(0f);
@@ -217,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver();
     }
 
-    void unregisterReceiver(){
+    void unregisterReceiver() {
         try {
             unregisterReceiver(mNetworkReceiver);
         } catch (IllegalArgumentException e) {
@@ -231,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        AdView mAdView = findViewById(R.id.adView);
+        mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 
@@ -283,9 +286,11 @@ public class MainActivity extends AppCompatActivity {
                     if (viewHeight != 0) {
                         DisplayMetrics metrics = new DisplayMetrics();
                         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                        int height = metrics.heightPixels;
 
-                        height = height - viewHeight;
+                        int height = metrics.heightPixels;
+                        int bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
+
+                        height = height - (viewHeight + bannerHeight);
 
                         ViewGroup.LayoutParams params = webView.getLayoutParams();
                         params.height = height;
@@ -346,7 +351,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         //Music Control Buttons Actions
         ibClosePlayer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -365,9 +369,11 @@ public class MainActivity extends AppCompatActivity {
                                     if (viewHeight != 0) {
                                         DisplayMetrics metrics = new DisplayMetrics();
                                         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                                        int height = metrics.heightPixels;
 
-                                        height = height - viewHeight;
+                                        int height = metrics.heightPixels;
+                                        int bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
+
+                                        height = height - (viewHeight + bannerHeight);
 
                                         ViewGroup.LayoutParams params = webView.getLayoutParams();
                                         params.height = height;
@@ -397,8 +403,9 @@ public class MainActivity extends AppCompatActivity {
                         DisplayMetrics metrics = new DisplayMetrics();
                         getWindowManager().getDefaultDisplay().getMetrics(metrics);
                         int height = metrics.heightPixels;
+                        int bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
 
-                        height = height + viewHeight;
+                        height = height - (viewHeight - bannerHeight);
 
                         ViewGroup.LayoutParams params = webView.getLayoutParams();
                         params.height = height;
@@ -488,6 +495,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void processValue(String HTMLContent) {
+
+
+        if (HTMLContent.isEmpty()) {
+            String header = getResources().getString(R.string.music_not_found_header);
+            String message = getResources().getString(R.string.music_not_found_message);
+
+            HTMLContent = "<center><h1>" + header + "</h1> ";
+            HTMLContent += "<p>" + message + "</p></center>";
+        }
+
+        HTMLContent = "<br>" + HTMLContent;
+
         webView.loadDataWithBaseURL(null, HTMLContent, "text/html", "UTF-8", null);
 
         webView.setWebViewClient(new WebViewClient() {

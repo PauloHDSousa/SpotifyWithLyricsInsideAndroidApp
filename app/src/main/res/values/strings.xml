@@ -1,6 +1,28 @@
 <resources>
-    <string name="app_name">Spotify com letras e curiosidades sobre seu artista preferido</string>
+    <string name="app_name">Spotify com letras</string>
+    <!-- Main Page -->
+    <string name="listen_now">Ouvir com letra</string>
 
     <!-- Lyrics Page -->
     <string name="scroll_speed">Velocidade  do scroll</string>
+
+    <!-- Share on Main Page -->
+    <string name="share">Compartilhar</string>
+    <string name="share_message">Baixe agora para acompanhar as letras das músicas do Spotify enquanto ouve</string>
+
+    <!-- Music not Found -->
+    <string name="music_not_found_header">Letra da música não foi encontrada</string>
+    <string name="music_not_found_message">Não foi possível encontrar a letra da música, um registro foi gerado e dentro de alguns dias isso será resolvido</string>
+
+    <!-- No connection -->
+    <string name="without_internet">Você ainda não possuí conexão com a internet</string>
+    <string name="internet_off_header">Sem conexão com a internet</string>
+    <string name="internet_off_message">Conecte-se à internet para poder continuar utilizando o aplicativo</string>
+    <string name="internet_off_retry_button">Estou conectado</string>
+
+    <!-- Spotify Connection Error -->
+    <string name="spotify_header">É necessário ter o Spotify instalado e permitir a conexão para que o aplicartivo funcione corretamente</string>
+    <string name="spotify_button_message">Aceitar</string>
+    <string name="spotify_error">Algo de errado aconteceu ao adquirir permissão com o Spotify, tente novamente mais tarde</string>
+    <string name="spotify_install">Instalar Spotify</string>
 </resources>

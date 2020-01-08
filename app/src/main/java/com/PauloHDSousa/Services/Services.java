@@ -3,6 +3,7 @@ package com.PauloHDSousa.Services;
 import android.os.AsyncTask;
 
 import com.PauloHDSousa.SpotifyWithLyricsInside.MainActivity;
+import com.PauloHDSousa.SpotifyWithLyricsInside.R;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -28,7 +29,6 @@ public class Services extends AsyncTask<String, Void, String> {
         this.mainActivity = _mainActivity;
     }
 
-    //TODO:I can do better.
     @Override
     protected String doInBackground(String... params) {
         String artist = params[0];
@@ -36,35 +36,40 @@ public class Services extends AsyncTask<String, Void, String> {
 
         String HTML = "";
 
-        Document document = getMusicHTML(artist, music , SourceLETRASMUSICA,false);
-        if(document != null){
-            HTML = document.body().select(QueryLETRASMUSICA).get(0).html();
-        }
-        else {
-            document = getMusicHTML(artist, music , SourceOUVIRMUSICA,false);
-            if(document != null){
-                HTML = document.body().select(QueryOUVIRMUSICA).get(0).html();
-            }
-            else {
+        //Get from LETRASMUSICA
+        HTML = getHTMLfromSource(artist,music, SourceLETRASMUSICA, QueryLETRASMUSICA, false);
+        if(!HTML.isEmpty())
+            return  HTML;
 
-                document =  getMusicHTML(artist, music , SourceGenius,true);
-                if(document != null){
-                    String html =  document.body().select(QueryGENIUS).get(0).html();
+        //Get from OUVIRMUSICA
+        HTML = getHTMLfromSource(artist, music, SourceOUVIRMUSICA, QueryOUVIRMUSICA, false);
+        if(!HTML.isEmpty())
+            return  HTML;
 
-                    //Removing the ADS
-                    HTML =  html.replaceAll("(.*)?<a.*?>", "").replaceAll("</a>", "");
-                }
-            }
-        }
-        
-        if(HTML.isEmpty()) {
-            HTML = "<center><h1>Música não foi encontrada </h1> ";
-            HTML += "<p> Não foi possível encontrar a música, um registro foi gerado e dentro de alguns dias isso será resolvido</center>";
+        //Get from GENIUS
+        HTML = getHTMLfromSource(artist, music, SourceGenius, QueryGENIUS,true);
+        if(!HTML.isEmpty()) {
+            //Removing the ADS
+            HTML =  HTML.replaceAll("(.*)?<a.*?>", "").replaceAll("</a>", "");
+            return HTML;
         }
 
-        return  "<br>" + HTML;
+        return  HTML;
     }
 
+
+    String getHTMLfromSource(String artist, String music, String source, String query, boolean isGenius){
+
+        String HTML = "";
+
+        Document document = getMusicHTML(artist, music , source, isGenius);
+
+        if(document != null){
+            HTML = document.body().select(query).get(0).html();
+        }
+
+        return  HTML;
+    }
 
     Document getMusicHTML(String artist, String music, String source, boolean isGENIUS){
 

@@ -1,6 +1,28 @@
 <resources>
-    <string name="app_name">Spotify With Lyrics and more about your artist</string>
+    <string name="app_name">Spotify With Lyrics</string>
+    <!-- Main Page -->
+    <string name="listen_now">Ouvir com letra</string>
 
     <!-- Lyrics Page -->
     <string name="scroll_speed">Scroll speed</string>
+
+    <!-- Share on Main Page -->
+    <string name="share">Share</string>
+    <string name="share_message">Download now to follow Spotify lyrics as you listen</string>
+    <!-- Music not Found -->
+    <string name="music_not_found_header">Lyrics not found</string>
+    <string name="music_not_found_message">The lyrics could not be found, a record was generated and within a few days this will be resolved.</string>
+
+    <!-- No connection -->
+    <string name="without_internet">You do not have an internet connection yet</string>
+    <string name="internet_off_header">No internet connection</string>
+    <string name="internet_off_message">Connect to the internet to continue using the app</string>
+    <string name="internet_off_retry_button">Try again</string>
+
+
+    <!-- Spotify Connection Error -->
+    <string name="spotify_header">You must have Spotify installed and allow connection for the app to work correctly</string>
+    <string name="spotify_button_message">Accept</string>
+    <string name="spotify_error">Something went wrong when purchasing permission with Spotify, please try again later</string>
+    <string name="spotify_install">Install Spotify</string>
 </resources>

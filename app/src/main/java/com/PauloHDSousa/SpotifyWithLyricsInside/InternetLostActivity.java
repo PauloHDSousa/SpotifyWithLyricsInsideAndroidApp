@@ -39,7 +39,8 @@ public class InternetLostActivity  extends AppCompatActivity {
                 return;
             }
             else{
-                Toast.makeText(this,"Você ainda não possuí conexão com a internet", Toast.LENGTH_SHORT).show();
+                String without_connection = getResources().getString(R.string.without_internet);
+                Toast.makeText(this,without_connection, Toast.LENGTH_SHORT).show();
             }
         });
 

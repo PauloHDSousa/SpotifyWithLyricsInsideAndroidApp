@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Spotify con letras</string>
+    <!-- Main Page -->
+    <string name="listen_now">Listen with lyrics</string>
+
+    <!-- Lyrics Page -->
+    <string name="scroll_speed">Scroll speed</string>
+
+    <!-- Share on Main Page -->
+    <string name="share">Compartir</string>
+    <string name="share_message">Descárgala ahora para seguir las letras de Spotify mientras escuchas</string>
+
+    <!-- Music not Found -->
+    <string name="music_not_found_header">Letras no encontradas</string>
+    <string name="music_not_found_message">No se pudo encontrar la letra, se generó un registro y en unos días se resolverá.</string>
+
+    <!-- No connection -->
+    <string name="without_internet">Aún no tienes conexión a internet</string>
+    <string name="internet_off_header">Sin conexión a internet</string>
+    <string name="internet_off_message">Conéctese a internet para continuar usando la aplicación</string>
+    <string name="internet_off_retry_button">Estoy conectado</string>
+
+
+    <!-- Spotify Connection Error -->
+    <string name="spotify_header">Debe tener instalado Spotify y permitir la conexión para que la aplicación funcione correctamente</string>
+    <string name="spotify_button_message">Aceptar</string>
+    <string name="spotify_error">Algo salió mal al comprar el permiso con Spotify, intente nuevamente más tarde</string>
+    <string name="spotify_install">Instalar Spotify</string>
+</resources>
