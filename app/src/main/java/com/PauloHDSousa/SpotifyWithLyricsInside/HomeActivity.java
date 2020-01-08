@@ -127,16 +127,16 @@ public class HomeActivity extends AppCompatActivity {
         ibRate.setOnClickListener(v -> {
 
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.android.example"));
+            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.paulohdsousa.vocemeconhece"));
             startActivity(intent);
 
-            
-            final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-            } catch (android.content.ActivityNotFoundException anfe) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
-            }
+//
+          //  final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
+          //  try {
+          //      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+           // } catch (android.content.ActivityNotFoundException anfe) {
+          //      startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+            //}
         });
 
         ibDrivePlaylist.setOnClickListener(v -> {
