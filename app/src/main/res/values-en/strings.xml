@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Spotify With Lyrics</string>
+    <string name="app_name">Song With Lyrics</string>
     <!-- Main Page -->
-    <string name="listen_now">Ouvir com letra</string>
+    <string name="listen_now">Listen reading the lyrics</string>
 
     <!-- Lyrics Page -->
     <string name="scroll_speed">Scroll speed</string>

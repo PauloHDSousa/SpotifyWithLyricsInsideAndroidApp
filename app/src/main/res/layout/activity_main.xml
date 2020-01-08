@@ -20,7 +20,7 @@
             android:layout_gravity="center_horizontal"
             android:backgroundTint="@android:color/transparent"
             app:adSize="BANNER"
-            app:adUnitId="ca-app-pub-3940256099942544/6300978111"></com.google.android.gms.ads.AdView>
+            app:adUnitId="ca-app-pub-9110065538380851/3781748940"></com.google.android.gms.ads.AdView>
 
         <RelativeLayout
             android:id="@+id/rlWebView"
