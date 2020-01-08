@@ -1,8 +1,11 @@
 package com.PauloHDSousa.SpotifyWithLyricsInside;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -18,7 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.PauloHDSousa.Utils.Internet;
+import com.PauloHDSousa.Broadcast.CurrentNetworkChangeReceiver;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.spotify.android.appremote.api.ConnectionParams;
@@ -33,6 +36,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class HomeActivity extends AppCompatActivity {
 
 
+    private static Activity context;
 
     private static final int REQUEST_CODE = 2337;
     private static final String REDIRECT_URI = "http://com.PauloHDSousa.SpotifyWithLyricsInside://callback";
@@ -43,11 +47,20 @@ public class HomeActivity extends AppCompatActivity {
     LinearLayout horizontalParent;
     ProgressBar pbLoadingPlaylist;
 
+    private CurrentNetworkChangeReceiver mNetworkReceiver;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        context = this;
+
         setContentView(R.layout.activity_home);
+
+        //Register Receiver
+        mNetworkReceiver = new CurrentNetworkChangeReceiver();
+        registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         AdView mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -55,8 +68,39 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver();
+    }
+
+    void unregisterReceiver(){
+        try {
+            unregisterReceiver(mNetworkReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void redirect(boolean isConnected){
+
+        Class redirectActivity = InternetLostActivity.class;
+
+        if(isConnected)
+            redirectActivity = HomeActivity.class;
+
+        context.startActivity(new Intent(context, redirectActivity));
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
+
 
         llPlaylists = findViewById(R.id.llPlaylists);
         ibDrivePlaylist  = (ImageButton) findViewById(R.id.ibDrivePlaylist);
@@ -81,6 +125,12 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         ibRate.setOnClickListener(v -> {
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com.android.example"));
+            startActivity(intent);
+
+            
             final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
@@ -118,17 +168,6 @@ public class HomeActivity extends AppCompatActivity {
             setSelectedButton((ImageButton)v);
             loadPlaylistSuggestion(ContentApi.ContentType.DEFAULT);
         });
-
-
-        Internet internet = new Internet(this);
-
-
-        //If there is no internet, move to Another Activity
-        if(!internet.isNetworkConnected()){
-            Intent myIntent = new Intent(this, InternetLostActivity.class);
-            startActivity(myIntent);
-            return;
-        }
 
         ConnectionParams connectionParams =
                 new ConnectionParams.Builder("9e5381fc5bb34ce2a0e68dadd7662977")

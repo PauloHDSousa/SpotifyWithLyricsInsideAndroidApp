@@ -1,31 +1,21 @@
 package com.PauloHDSousa.SpotifyWithLyricsInside;
 
- import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.appcompat.app.AppCompatActivity;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
- import android.animation.AnimatorSet;
- import android.animation.LayoutTransition;
-import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
-import android.transition.ChangeBounds;
-import android.transition.TransitionManager;
-import android.transition.TransitionSet;
- import android.util.DisplayMetrics;
- import android.util.Log;
-import android.util.TypedValue;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
- import android.view.ViewTreeObserver;
- import android.view.Window;
-import android.view.WindowManager;
- import android.view.animation.AccelerateDecelerateInterpolator;
- import android.webkit.WebChromeClient;
+import android.view.ViewTreeObserver;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageButton;
@@ -35,26 +25,22 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
-
+import com.PauloHDSousa.Broadcast.CurrentNetworkChangeReceiver;
 import com.PauloHDSousa.Services.AppPreferences;
 import com.PauloHDSousa.Services.Services;
- import com.PauloHDSousa.Utils.Internet;
- import com.PauloHDSousa.Utils.ResizeAnimation;
- import com.google.android.gms.ads.AdRequest;
- import com.google.android.gms.ads.AdView;
- import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.PauloHDSousa.Utils.Internet;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
-import com.spotify.android.appremote.api.ContentApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
-import com.spotify.android.appremote.internal.ContentApiImpl;
 import com.spotify.protocol.client.CallResult;
-import com.spotify.protocol.types.ListItem;
-import com.spotify.protocol.types.ListItems;
 import com.spotify.protocol.types.Track;
 
 public class MainActivity extends AppCompatActivity {
+
+    private CurrentNetworkChangeReceiver mNetworkReceiver;
 
     private static final int REQUEST_CODE = 2337;
     private static final String REDIRECT_URI = "http://com.PauloHDSousa.SpotifyWithLyricsInside://callback";
@@ -69,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     boolean autoScrollOn = true;
     int scrollSpeed = 2;
     int scrollUpdateInMS = 400;
-    boolean isSongPaused, isMusicContentHide,isShuffleOn;
+    boolean isSongPaused, isMusicContentHide, isShuffleOn;
     boolean isFirstLoad = true;
     SeekBar sbMusic;
     Handler seekHandler = new Handler();
@@ -93,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         Internet internet = new Internet(this);
 
         //If there is no internet, move to Another Activity
-        if(!internet.isNetworkConnected()){
+        if (!internet.isNetworkConnected()) {
             Intent myIntent = new Intent(MainActivity.this, InternetLostActivity.class);
             startActivity(myIntent);
             return;
@@ -152,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
                     isSongPaused = playerState.isPaused;
 
-                    if(isFirstLoad) {
+                    if (isFirstLoad) {
                         //Handle the STOP / PLAY button
                         if (isSongPaused) {
                             ibPlay.setVisibility(View.VISIBLE);
@@ -220,6 +206,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver();
+    }
+
+    void unregisterReceiver(){
+        try {
+            unregisterReceiver(mNetworkReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -228,6 +234,10 @@ public class MainActivity extends AppCompatActivity {
         AdView mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+
+        //Register Receiver
+        mNetworkReceiver = new CurrentNetworkChangeReceiver();
+        registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         //SharedPrefs
         AppPreferences appPreferences = AppPreferences.getInstance(this);
@@ -270,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onGlobalLayout() {
                     int viewHeight = linearLayoutMusicContnet.getHeight();
 
-                    if(viewHeight != 0) {
+                    if (viewHeight != 0) {
                         DisplayMetrics metrics = new DisplayMetrics();
                         getWindowManager().getDefaultDisplay().getMetrics(metrics);
                         int height = metrics.heightPixels;
@@ -341,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
         ibClosePlayer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(isMusicContentHide){
+                if (isMusicContentHide) {
                     linearLayoutMusicContnet.animate()
                             .translationY(0)
                             .setDuration(500)
@@ -368,11 +378,9 @@ public class MainActivity extends AppCompatActivity {
                             });
 
 
-
                     ibClosePlayer.setImageResource(R.drawable.down);
                     isMusicContentHide = false;
-                }
-                else {
+                } else {
                     linearLayoutMusicContnet.animate()
                             .translationY(linearLayoutMusicContnet.getHeight() - ibClosePlayer.getHeight())
                             .setDuration(500)

@@ -13,6 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen">
 
+
+
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-9110065538380851~7451431026"/>
@@ -26,6 +29,15 @@
         </activity>
         <activity android:name=".InternetLostActivity" android:label="Internet Lost"/>
         <activity android:name=".MainActivity" android:label="Main"/>
+
+        <receiver
+            android:name="com.PauloHDSousa.Broadcast.CurrentNetworkChangeReceiver"
+            android:label="NetworkChangeReceiver" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
