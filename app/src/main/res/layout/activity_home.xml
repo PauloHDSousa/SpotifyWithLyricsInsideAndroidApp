@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginLeft="5dp"
                 app:srcCompat="@drawable/app_logo_small" />
 
@@ -39,7 +39,7 @@
                 android:id="@+id/textView4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="35dp"
+                android:layout_marginLeft="40dp"
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-condensed"
                 android:text="@string/app_name"

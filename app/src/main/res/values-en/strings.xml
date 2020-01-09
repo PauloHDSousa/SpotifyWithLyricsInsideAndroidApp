@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Song With Lyrics</string>
+    <string name="app_name">SLyrics</string>
     <!-- Main Page -->
     <string name="listen_now">Listen reading the lyrics</string>
 
