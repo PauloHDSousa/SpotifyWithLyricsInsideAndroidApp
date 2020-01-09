@@ -20,10 +20,12 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.PauloHDSousa.Broadcast.CurrentNetworkChangeReceiver;
 import com.PauloHDSousa.Models.Playlist;
 import com.PauloHDSousa.Utils.Playlists;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -81,6 +83,42 @@ public class HomeActivity extends AppCompatActivity {
         AdView mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+
+        mAdView.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                // Code to be executed when an ad finishes loading.
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                // Code to be executed when an ad request fails.
+
+                Toast.makeText(HomeActivity.this, errorCode, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when an ad opens an overlay that
+                // covers the screen.
+            }
+
+            @Override
+            public void onAdClicked() {
+                // Code to be executed when the user clicks on an ad.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                // Code to be executed when the user is about to return
+                // to the app after tapping on an ad.
+            }
+        });
     }
 
     @Override
@@ -212,9 +250,17 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Throwable throwable) {
-                Intent myIntent = new Intent(HomeActivity.this, SpotifyConnectionActivity.class);
-                startActivity(myIntent);
-                return;
+
+                String cause = throwable.getCause().getMessage();
+
+                if(cause.equals("{\"message\":\"Explicit user authorization is required to use Spotify. The user has to complete the auth-flow to allow the app to use Spotify on their behalf\"}")) {
+                    Intent myIntent = new Intent(HomeActivity.this, SpotifyConnectionActivity.class);
+                    startActivity(myIntent);
+                    return;
+                }
+                else{
+                    Toast.makeText(HomeActivity.this, cause, Toast.LENGTH_LONG).show();
+                }
             }
         });
 

@@ -17,7 +17,6 @@
             android:id="@+id/adView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
             android:backgroundTint="@android:color/transparent"
             app:adSize="BANNER"
             app:adUnitId="ca-app-pub-9110065538380851/3781748940"></com.google.android.gms.ads.AdView>

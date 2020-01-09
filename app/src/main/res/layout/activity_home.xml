@@ -12,18 +12,17 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-9110065538380851/2983548888"></com.google.android.gms.ads.AdView>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp">
-
-            <com.google.android.gms.ads.AdView
-                android:id="@+id/adView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="50dp"
-                app:adSize="SMART_BANNER"
-                app:adUnitId="ca-app-pub-9110065538380851/2983548888"></com.google.android.gms.ads.AdView>
 
 
             <ImageView
@@ -31,8 +30,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_marginTop="10dp"
                 android:layout_marginLeft="5dp"
+                android:layout_marginTop="10dp"
                 app:srcCompat="@drawable/app_logo_small" />
 
             <TextView
@@ -136,7 +135,8 @@
             <LinearLayout
                 android:id="@+id/llPlaylists"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
                 android:orientation="vertical">
 
             </LinearLayout>
