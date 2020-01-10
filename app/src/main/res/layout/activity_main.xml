@@ -204,7 +204,7 @@
                         android:layout_marginTop="1dp"
                         android:layout_marginRight="4dp"
                         android:background="@null"
-                        android:src="@drawable/spotify_logo" />
+                        android:src="@drawable/open_player" />
 
                 </LinearLayout>
 

@@ -11,6 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/transparent"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-9110065538380851/7629811842"></com.google.android.gms.ads.AdView>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,7 +32,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                app:srcCompat="@drawable/spotify_big_logo" />
+                app:srcCompat="@drawable/please" />
 
             <LinearLayout
                 android:layout_width="match_parent"

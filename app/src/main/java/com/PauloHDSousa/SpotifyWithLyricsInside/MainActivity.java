@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdFailedToLoad(int errorCode) {
                 // Code to be executed when an ad request fails.
-                Toast.makeText(MainActivity.this, errorCode, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, errorCode, Toast.LENGTH_LONG).show();
             }
 
             @Override
