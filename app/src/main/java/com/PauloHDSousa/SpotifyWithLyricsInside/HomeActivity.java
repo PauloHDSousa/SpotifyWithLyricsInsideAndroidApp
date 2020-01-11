@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,6 +55,7 @@ public class HomeActivity extends AppCompatActivity {
     LinearLayout horizontalParent;
     ProgressBar pbLoadingPlaylist;
     ScrollView scrollView;
+    int imageWidht;
 
 
     Playlists playlists = new Playlists();
@@ -119,6 +121,10 @@ public class HomeActivity extends AppCompatActivity {
                 // to the app after tapping on an ad.
             }
         });
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        imageWidht = metrics.widthPixels / 2;
     }
 
     @Override
@@ -320,12 +326,15 @@ public class HomeActivity extends AppCompatActivity {
         parent.setOrientation(LinearLayout.VERTICAL);
 
         LinearLayout.LayoutParams parentParams  = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        parentParams.setMargins(15, 10, 30, 0);
+        parentParams.setMargins(0, 10, 5, 0);
 
         parent.setLayoutParams(parentParams);
 
         ImageButton ibPlaylist = new ImageButton(this);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(312, 312);
+
+
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(imageWidht, imageWidht);
         params.setMargins(0, 10, 0,0);
 
         ibPlaylist.setLayoutParams(params);

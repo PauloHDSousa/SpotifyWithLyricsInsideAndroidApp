@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     RelativeLayout relativeWebView;
     ProgressBar pbLoadingHTML;
     AdView mAdView;
+    boolean isAdLoaded = true;
 
     //Auto-Scroll
     Runnable mScrollDown = new Runnable() {
@@ -253,12 +254,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded() {
                 // Code to be executed when an ad finishes loading.
+                OnAdLoaded();
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
-                // Code to be executed when an ad request fails.
-                Toast.makeText(MainActivity.this, errorCode, Toast.LENGTH_LONG).show();
+                mAdView.setVisibility(View.GONE);
+                OnAdLoaded();
             }
 
             @Override
@@ -322,32 +324,7 @@ public class MainActivity extends AppCompatActivity {
         ibClosePlayer = (ImageButton) findViewById(R.id.ibClosePlayer);
 
 
-        ViewTreeObserver viewTreeObserver = linearLayoutMusicContnet.getViewTreeObserver();
-        if (viewTreeObserver.isAlive()) {
-            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    int viewHeight = linearLayoutMusicContnet.getHeight();
 
-                    if (viewHeight != 0) {
-                        DisplayMetrics metrics = new DisplayMetrics();
-                        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-
-                        int height = metrics.heightPixels;
-                        int bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
-
-                        height = height - (viewHeight + bannerHeight);
-
-                        ViewGroup.LayoutParams params = webView.getLayoutParams();
-                        params.height = height;
-
-                        webView.setLayoutParams(params);
-
-                        linearLayoutMusicContnet.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    }
-                }
-            });
-        }
 
         //Music Bar
         sbMusic.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -417,7 +394,11 @@ public class MainActivity extends AppCompatActivity {
                                         getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
                                         int height = metrics.heightPixels;
-                                        int bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
+
+                                        int bannerHeight = 0;
+
+                                        if(mAdView.getVisibility() == View.VISIBLE)
+                                            bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
 
                                         height = height - (viewHeight + bannerHeight);
 
@@ -449,9 +430,13 @@ public class MainActivity extends AppCompatActivity {
                         DisplayMetrics metrics = new DisplayMetrics();
                         getWindowManager().getDefaultDisplay().getMetrics(metrics);
                         int height = metrics.heightPixels;
-                        int bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
 
-                        height = height - (viewHeight - bannerHeight);
+                        int bannerHeight = 0;
+
+                        if(mAdView.getVisibility() == View.VISIBLE)
+                            bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
+
+                        height = height + (viewHeight - bannerHeight);
 
                         ViewGroup.LayoutParams params = webView.getLayoutParams();
                         params.height = height;
@@ -526,6 +511,38 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(launcher);
             }
         });
+    }
+
+    void OnAdLoaded(){
+        ViewTreeObserver viewTreeObserver = linearLayoutMusicContnet.getViewTreeObserver();
+        if (viewTreeObserver.isAlive()) {
+            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    int viewHeight = linearLayoutMusicContnet.getHeight();
+
+                    if (viewHeight != 0) {
+                        DisplayMetrics metrics = new DisplayMetrics();
+                        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+                        int height = metrics.heightPixels;
+                        int bannerHeight = 0;
+
+                        if(mAdView.getVisibility() == View.VISIBLE)
+                            bannerHeight = AdSize.FULL_BANNER.getHeightInPixels(MainActivity.this);
+
+                        height = height - (viewHeight + bannerHeight);
+
+                        ViewGroup.LayoutParams params = webView.getLayoutParams();
+                        params.height = height;
+
+                        webView.setLayoutParams(params);
+
+                        linearLayoutMusicContnet.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    }
+                }
+            });
+        }
     }
 
     void onShuffleOn() {
