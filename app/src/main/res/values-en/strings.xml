@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SLyrics</string>
     <!-- Main Page -->
-    <string name="listen_now">Listen reading the lyrics</string>
+    <string name="listen_now">Show Lyrics</string>
 
     <!-- Lyrics Page -->
     <string name="scroll_speed">Scroll speed</string>
@@ -14,7 +14,7 @@
     <string name="music_not_found_message">The lyrics could not be found, a record was generated and within a few days this will be resolved.</string>
 
     <!-- No connection -->
-    <string name="without_internet">You do not have an internet connection yet</string>
+    <string name="without_internet">You do not have an internet connection</string>
     <string name="internet_off_header">No internet connection</string>
     <string name="internet_off_message">Connect to the internet to continue using the app</string>
     <string name="internet_off_retry_button">Try again</string>
