@@ -94,9 +94,7 @@ public class HomeActivity extends AppCompatActivity {
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
-                // Code to be executed when an ad request fails.
-
-                Toast.makeText(HomeActivity.this, errorCode, Toast.LENGTH_SHORT).show();
+                mAdView.setVisibility(View.GONE);
             }
 
             @Override

@@ -253,14 +253,11 @@ public class MainActivity extends AppCompatActivity {
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Code to be executed when an ad finishes loading.
-                OnAdLoaded();
             }
 
             @Override
             public void onAdFailedToLoad(int errorCode) {
                 mAdView.setVisibility(View.GONE);
-                OnAdLoaded();
             }
 
             @Override
